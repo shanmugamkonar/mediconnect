@@ -513,15 +513,20 @@
         let effectiveProjectId = "NOT_CONFIGURED"; 
 
         // --- OPTIONAL: Force a specific Firebase config for testing ---
+        // To use this, DEFINE 'forceConfig' with your actual Firebase project configuration object.
+        // If 'forceConfig' is defined and not null, it will be used.
+        const forceConfig = null; // Set to null to use default config (env or fallback)
+        // Example of forcing:
+        /*
         const forceConfig = { 
-            apiKey: "AIzaSyBJU6lJxGYwZ0Mbb2dyffB18MN7t90Bv08", 
-            authDomain: "medicare-1a7f9.firebaseapp.com",
-            projectId: "medicare-1a7f9",
-            storageBucket: "medicare-1a7f9.appspot.com", 
-            messagingSenderId: "213089274061", 
-            appId: "1:213089274061:web:f33aabf2d9f79ff8c8c184", 
+            apiKey: "YOUR_API_KEY_HERE", 
+            authDomain: "your-project-id.firebaseapp.com",
+            projectId: "your-project-id",
+            storageBucket: "your-project-id.appspot.com", 
+            messagingSenderId: "YOUR_SENDER_ID_HERE", 
+            appId: "YOUR_APP_ID_HERE" 
         };
-        // To disable forcing, set the above to: const forceConfig = null; 
+        */
         // --- End of Force Config section ---
 
         if (forceConfig && typeof forceConfig === 'object' && forceConfig.projectId) { 
@@ -737,7 +742,6 @@
                 anchor.addEventListener('click', function (e) {
                     e.preventDefault();
                     const targetId = this.getAttribute('href');
-                    // Only attempt to scroll if targetId is more than just "#"
                     if (targetId && targetId.length > 1) { 
                         const targetElement = document.querySelector(targetId);
                         if (targetElement) {
@@ -800,7 +804,6 @@
                     try {
                         const cred = await signInWithEmailAndPassword(auth, loginFormEl.loginEmail.value, loginFormEl.loginPassword.value);
                         window.closeModal('loginModal');
-                        // updateAuthUI will be called by onAuthStateChanged
                         loginFormEl.reset();
                     } catch (error) { 
                         window.showMessageModal('Login Failed', error.message); 
