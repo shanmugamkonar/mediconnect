@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediConnect - Your Health, Simplified</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .hero-bg {
+            background-image: linear-gradient(to right, rgba(0, 128, 128, 0.7), rgba(0, 128, 128, 0.3)), url('https://placehold.co/1920x1080/E0F2F7/333333?text=Modern+Clinic+Background');
+            background-size: cover;
+            background-position: center;
+        }
+        .section-title {
+            font-size: 2.25rem; /* 36px */
+            font-weight: 700;
+            margin-bottom: 1.5rem; /* 24px */
+            text-align: center;
+        }
+        .feature-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .cta-button {
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+        .cta-button:hover {
+            transform: scale(1.05);
+        }
+        /* Custom modal styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.5); /* Black w/ opacity */
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto; /* 10% from the top and centered */
+            padding: 24px;
+            border: 1px solid #888;
+            width: 90%; /* Could be more or less, depending on screen size */
+            max-width: 500px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .modal-header {
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e5e7eb; /* gray-200 */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-body {
+            padding-top: 16px;
+            padding-bottom: 16px;
+        }
+        .modal-footer {
+            padding-top: 16px;
+            border-top: 1px solid #e5e7eb; /* gray-200 */
+            text-align: right;
+        }
+        .close-button {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        /* Loading spinner for modals */
+        .loading-spinner {
+            border: 4px solid #f3f3f3; /* Light grey */
+            border-top: 4px solid #06b6d4; /* Teal */
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <nav class="bg-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <a href="#" class="text-2xl font-bold text-teal-600">
+                <i class="fas fa-heartbeat mr-2"></i>MediConnect
+            </a>
+            <div class="hidden md:flex space-x-4">
+                <a href="#home" class="text-gray-600 hover:text-teal-500 px-3 py-2 rounded-md">Home</a>
+                <a href="#services" class="text-gray-600 hover:text-teal-500 px-3 py-2 rounded-md">Services</a>
+                <a href="#how-it-works" class="text-gray-600 hover:text-teal-500 px-3 py-2 rounded-md">How it Works</a>
+                <a href="#testimonials" class="text-gray-600 hover:text-teal-500 px-3 py-2 rounded-md">Testimonials</a>
+                <a href="#contact" class="text-gray-600 hover:text-teal-500 px-3 py-2 rounded-md">Contact</a>
+            </div>
+            <div id="auth-buttons" class="flex items-center space-x-2">
+                <button onclick="openModal('loginModal')" class="bg-teal-500 text-white px-4 py-2 rounded-lg hover:bg-teal-600 cta-button text-sm">Login</button>
+                <button onclick="openModal('signupModal')" class="border border-teal-500 text-teal-500 px-4 py-2 rounded-lg hover:bg-teal-500 hover:text-white cta-button text-sm">Sign Up</button>
+            </div>
+             <div id="user-info" class="hidden items-center ml-6">
+                <span id="userDisplayInfo" class="text-sm text-gray-700 mx-3"></span>
+                <button id="logoutButton" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 cta-button text-sm">Logout</button>
+            </div>
+            <div class="md:hidden">
+                <button id="mobile-menu-button" class="text-gray-600 hover:text-teal-500 focus:outline-none">
+                    <i class="fas fa-bars text-2xl"></i>
+                </button>
+            </div>
+        </div>
+        <div id="mobile-menu" class="md:hidden hidden bg-white shadow-lg">
+            <a href="#home" class="block text-gray-600 hover:bg-teal-50 hover:text-teal-500 px-4 py-3">Home</a>
+            <a href="#services" class="block text-gray-600 hover:bg-teal-50 hover:text-teal-500 px-4 py-3">Services</a>
+            <a href="#how-it-works" class="block text-gray-600 hover:bg-teal-50 hover:text-teal-500 px-4 py-3">How it Works</a>
+            <a href="#testimonials" class="block text-gray-600 hover:bg-teal-50 hover:text-teal-500 px-4 py-3">Testimonials</a>
+            <a href="#contact" class="block text-gray-600 hover:bg-teal-50 hover:text-teal-500 px-4 py-3">Contact</a>
+            <div id="mobile-auth-buttons" class="px-4 py-3 border-t border-gray-200">
+                 <button onclick="openModal('loginModal'); closeMobileMenu();" class="w-full mb-2 bg-teal-500 text-white px-4 py-2 rounded-lg hover:bg-teal-600 cta-button text-sm">Login</button>
+                 <button onclick="openModal('signupModal'); closeMobileMenu();" class="w-full border border-teal-500 text-teal-500 px-4 py-2 rounded-lg hover:bg-teal-500 hover:text-white cta-button text-sm">Sign Up</button>
+            </div>
+            <div id="mobile-user-info" class="hidden px-4 py-3 border-t border-gray-200">
+                <span id="mobileUserDisplayInfo" class="block text-sm text-gray-700 mb-2 text-center"></span>
+                <button id="mobileLogoutButton" class="w-full bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 cta-button text-sm">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <header id="home" class="hero-bg text-white py-20 md:py-32">
+        <div class="container mx-auto px-6 text-center">
+            <h1 class="text-4xl md:text-6xl font-bold mb-6 leading-tight">Your Health, Simplified.</h1>
+            <button id="openAppointmentModalBtn" class="bg-yellow-400 text-gray-900 font-semibold px-8 py-4 rounded-lg text-lg hover:bg-yellow-500 cta-button mt-10">
+                Book an Appointment Now
+            </button>
+        </div>
+    </header>
+
+    <section id="services" class="py-16 bg-gray-100">
+        <div class="container mx-auto px-6">
+            <h2 class="section-title text-teal-700">Our Core Services</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="bg-white p-8 rounded-xl shadow-lg feature-card text-center">
+                    <div class="text-teal-500 text-5xl mb-6"><i class="fas fa-calendar-check"></i></div>
+                    <h3 class="text-xl font-semibold mb-3 text-gray-700">Book Appointment</h3>
+                    <p class="text-gray-600 mb-6 text-sm">Easily schedule appointments with our experienced doctors at your convenience.</p>
+                    <button onclick="openModal('appointmentModal')" class="bg-teal-500 text-white px-6 py-3 rounded-lg hover:bg-teal-600 cta-button w-full">Book Now</button>
+                </div>
+                <div class="bg-white p-8 rounded-xl shadow-lg feature-card text-center">
+                    <div class="text-teal-500 text-5xl mb-6"><i class="fas fa-vial"></i></div>
+                    <h3 class="text-xl font-semibold mb-3 text-gray-700">Order Lab Tests</h3>
+                    <p class="text-gray-600 mb-6 text-sm">Get your lab tests done hassle-free. Home sample collection available.</p>
+                    <button onclick="openModal('labTestModal')" class="bg-teal-500 text-white px-6 py-3 rounded-lg hover:bg-teal-600 cta-button w-full">Order Now</button>
+                </div>
+                <div class="bg-white p-8 rounded-xl shadow-lg feature-card text-center">
+                    <div class="text-teal-500 text-5xl mb-6"><i class="fas fa-file-medical-alt"></i></div>
+                    <h3 class="text-xl font-semibold mb-3 text-gray-700">View Reports</h3>
+                    <p class="text-gray-600 mb-6 text-sm">Access your medical reports securely online, anytime, anywhere.</p>
+                    <button onclick="openModal('viewReportsModal')" class="bg-teal-500 text-white px-6 py-3 rounded-lg hover:bg-teal-600 cta-button w-full">View Now</button>
+                </div>
+                <div class="bg-white p-8 rounded-xl shadow-lg feature-card text-center">
+                    <div class="text-teal-500 text-5xl mb-6"><i class="fas fa-pills"></i></div>
+                    <h3 class="text-xl font-semibold mb-3 text-gray-700">Order Medicines</h3>
+                    <p class="text-gray-600 mb-6 text-sm">Order your prescribed medicines online and get them delivered to your doorstep.</p>
+                    <button onclick="openModal('orderMedicinesModal')" class="bg-teal-500 text-white px-6 py-3 rounded-lg hover:bg-teal-600 cta-button w-full">Order Now</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="how-it-works" class="py-16">
+        <div class="container mx-auto px-6">
+            <h2 class="section-title text-teal-700">Simple Steps to Better Health</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10 text-center">
+                <div class="p-6">
+                    <div class="bg-teal-100 text-teal-600 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 text-3xl shadow-md">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2 text-gray-700">1. Create Account</h3>
+                    <p class="text-gray-600 text-sm">Sign up for free and create your secure health profile in minutes.</p>
+                </div>
+                <div class="p-6">
+                    <div class="bg-teal-100 text-teal-600 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 text-3xl shadow-md">
+                        <i class="fas fa-hand-pointer"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2 text-gray-700">2. Choose Service</h3>
+                    <p class="text-gray-600 text-sm">Select from our wide range of services - appointments, tests, or medicines.</p>
+                </div>
+                <div class="p-6">
+                    <div class="bg-teal-100 text-teal-600 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 text-3xl shadow-md">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2 text-gray-700">3. Get Care</h3>
+                    <p class="text-gray-600 text-sm">Receive quality healthcare services conveniently and efficiently.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="testimonials" class="py-16 bg-teal-50">
+        <div class="container mx-auto px-6">
+            <h2 class="section-title text-teal-700">What Our Patients Say</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="bg-white p-8 rounded-xl shadow-lg">
+                    <p class="text-gray-600 mb-6 italic">"MediConnect has revolutionized how I manage my health. Booking appointments is so easy, and I love the quick access to my reports!"</p>
+                    <div class="flex items-center">
+                        <img src="https://placehold.co/60x60/A7F3D0/333333?text=AP" alt="Patient Avatar" class="w-12 h-12 rounded-full mr-4 border-2 border-teal-200">
+                        <div>
+                            <p class="font-semibold text-gray-700">Anita P.</p>
+                            <p class="text-sm text-gray-500">Software Engineer</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-8 rounded-xl shadow-lg">
+                    <p class="text-gray-600 mb-6 italic">"Ordering lab tests from home was a game-changer for my elderly parents. The service is reliable and convenient."</p>
+                    <div class="flex items-center">
+                        <img src="https://placehold.co/60x60/A7F3D0/333333?text=RK" alt="Patient Avatar" class="w-12 h-12 rounded-full mr-4 border-2 border-teal-200">
+                        <div>
+                            <p class="font-semibold text-gray-700">Rajesh K.</p>
+                            <p class="text-sm text-gray-500">Business Owner</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-8 rounded-xl shadow-lg">
+                    <p class="text-gray-600 mb-6 italic">"I appreciate the prompt medicine delivery and the user-friendly platform. Highly recommended!"</p>
+                    <div class="flex items-center">
+                        <img src="https://placehold.co/60x60/A7F3D0/333333?text=SM" alt="Patient Avatar" class="w-12 h-12 rounded-full mr-4 border-2 border-teal-200">
+                        <div>
+                            <p class="font-semibold text-gray-700">Sunita M.</p>
+                            <p class="text-sm text-gray-500">Teacher</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact" class="py-16 bg-gray-100">
+        <div class="container mx-auto px-6">
+            <h2 class="section-title text-teal-700">Get In Touch</h2>
+            <div class="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+                <form id="contactForm">
+                    <div class="mb-4">
+                        <label for="contactName" class="block text-gray-700 text-sm font-medium mb-1">Full Name</label>
+                        <input type="text" id="contactName" name="contactName" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent" placeholder="John Doe" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="contactEmail" class="block text-gray-700 text-sm font-medium mb-1">Email Address</label>
+                        <input type="email" id="contactEmail" name="contactEmail" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent" placeholder="you@example.com" required>
+                    </div>
+                    <div class="mb-6">
+                        <label for="contactMessage" class="block text-gray-700 text-sm font-medium mb-1">Message</label>
+                        <textarea id="contactMessage" name="contactMessage" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent" placeholder="Your message..." required></textarea>
+                    </div>
+                    <div class="text-center">
+                        <button type="submit" class="bg-teal-500 text-white font-semibold px-8 py-3 rounded-lg hover:bg-teal-600 cta-button">Send Message</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-gray-800 text-gray-300 py-12">
+        <div class="container mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+                <div>
+                    <h3 class="text-xl font-semibold text-white mb-4"><i class="fas fa-heartbeat mr-2"></i>MediConnect</h3>
+                    <p class="text-sm">Simplifying healthcare for everyone. Your trusted partner in health and wellness.</p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-white mb-4">Quick Links</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#home" class="hover:text-teal-400">Home</a></li>
+                        <li><a href="#services" class="hover:text-teal-400">Services</a></li>
+                        <li><a href="#how-it-works" class="hover:text-teal-400">How It Works</a></li>
+                        <li><a href="#testimonials" class="hover:text-teal-400">Testimonials</a></li>
+                        <li><a href="#" class="hover:text-teal-400">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-teal-400">Terms of Service</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-white mb-4">Connect With Us</h3>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-teal-400 text-2xl"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-teal-400 text-2xl"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-teal-400 text-2xl"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-teal-400 text-2xl"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                    <p class="text-sm mt-4">123 Health St, Wellness City, HC 45678</p>
+                    <p class="text-sm">contact@mediconnect.com</p>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 pt-8 text-center text-sm">
+                <p>&copy; <span id="currentYear"></span> MediConnect. All rights reserved. <span id="dbUserId" class="block text-xs mt-1"></span></p>
+            </div>
+        </div>
+    </footer>
+
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="text-xl font-semibold text-gray-700">Login to Your Account</h3>
+                <span class="close-button" onclick="closeModal('loginModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="loginLoading" class="hidden loading-spinner"></div>
+                <form id="loginForm">
+                    <div class="mb-4">
+                        <label for="loginEmail" class="block text-sm font-medium text-gray-700">Email</label>
+                        <input type="email" id="loginEmail" name="loginEmail" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="you@example.com" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="loginPassword" class="block text-sm font-medium text-gray-700">Password</label>
+                        <input type="password" id="loginPassword" name="loginPassword" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="••••••••" required>
+                    </div>
+                     <div class="mb-4 text-right">
+                        <a href="#" class="text-sm text-teal-600 hover:text-teal-500" onclick="event.preventDefault(); showMessageModal('Feature Not Implemented', 'Password recovery is not yet available.');">Forgot password?</a>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 mr-2" onclick="closeModal('loginModal')">Cancel</button>
+                <button type="submit" form="loginForm" class="bg-teal-500 text-white px-4 py-2 rounded-lg hover:bg-teal-600">Login</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="signupModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="text-xl font-semibold text-gray-700">Create an Account</h3>
+                <span class="close-button" onclick="closeModal('signupModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="signupLoading" class="hidden loading-spinner"></div>
+                <form id="signupForm">
+                    <div class="mb-4">
+                        <label for="signupName" class="block text-sm font-medium text-gray-700">Full Name</label>
+                        <input type="text" id="signupName" name="signupName" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="John Doe" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="signupEmail" class="block text-sm font-medium text-gray-700">Email</label>
+                        <input type="email" id="signupEmail" name="signupEmail" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="you@example.com" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="signupPassword" class="block text-sm font-medium text-gray-700">Password (min. 6 characters)</label>
+                        <input type="password" id="signupPassword" name="signupPassword" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="Create a strong password" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="signupConfirmPassword" class="block text-sm font-medium text-gray-700">Confirm Password</label>
+                        <input type="password" id="signupConfirmPassword" name="signupConfirmPassword" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="Confirm your password" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 mr-2" onclick="closeModal('signupModal')">Cancel</button>
+                <button type="submit" form="signupForm" class="bg-teal-500 text-white px-4 py-2 rounded-lg hover:bg-teal-600">Create Account</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="appointmentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="text-xl font-semibold text-gray-700">Book an Appointment</h3>
+                <span class="close-button" onclick="closeModal('appointmentModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                 <div id="appointmentLoading" class="hidden loading-spinner"></div>
+                <p class="text-gray-600 mb-4">Please fill in the details below to book your appointment.</p>
+                <form id="appointmentForm">
+                    <div class="mb-4">
+                        <label for="patientName" class="block text-sm font-medium text-gray-700">Full Name</label>
+                        <input type="text" id="patientName" name="patientName" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="patientEmail" class="block text-sm font-medium text-gray-700">Email (for confirmation)</label>
+                        <input type="email" id="patientEmail" name="patientEmail" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="appointmentDate" class="block text-sm font-medium text-gray-700">Preferred Date</label>
+                        <input type="date" id="appointmentDate" name="appointmentDate" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="doctor" class="block text-sm font-medium text-gray-700">Select Doctor/Specialty</label>
+                        <select id="doctor" name="doctor" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm" required>
+                            <option value="">Select...</option>
+                            <option value="General Physician">General Physician</option>
+                            <option value="Cardiologist">Cardiologist</option>
+                            <option value="Pediatrician">Pediatrician</option>
+                            <option value="Dermatologist">Dermatologist</option>
+                        </select>
+                    </div>
+                     <div class="mb-4">
+                        <label for="appointmentNotes" class="block text-sm font-medium text-gray-700">Additional Notes (Optional)</label>
+                        <textarea id="appointmentNotes" name="appointmentNotes" rows="3" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm" placeholder="Any specific concerns or preferences?"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 mr-2" onclick="closeModal('appointmentModal')">Cancel</button>
+                <button type="submit" form="appointmentForm" class="bg-teal-500 text-white px-4 py-2 rounded-lg hover:bg-teal-600">Submit Request</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="labTestModal" class="modal">
+        <div class="modal-content">
+             <div class="modal-header">
+                <h3 class="text-xl font-semibold text-gray-700">Order Lab Tests</h3>
+                <span class="close-button" onclick="closeModal('labTestModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p class="text-gray-600">This feature is coming soon! You'll be able to order lab tests directly from here.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="bg-teal-500 text-white px-4 py-2 rounded-lg hover:bg-teal-600" onclick="closeModal('labTestModal')">Okay</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="viewReportsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="text-xl font-semibold text-gray-700">View Your Reports</h3>
+                <span class="close-button" onclick="closeModal('viewReportsModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p class="text-gray-600">Securely access your medical reports. This feature will be available after login.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="bg-teal-500 text-white px-4 py-2 rounded-lg hover:bg-teal-600" onclick="closeModal('viewReportsModal')">Okay</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="orderMedicinesModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="text-xl font-semibold text-gray-700">Order Medicines</h3>
+                <span class="close-button" onclick="closeModal('orderMedicinesModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p class="text-gray-600">Get your medicines delivered. This feature is under development and will be launched soon!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="bg-teal-500 text-white px-4 py-2 rounded-lg hover:bg-teal-600" onclick="closeModal('orderMedicinesModal')">Okay</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="messageModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="messageModalTitle" class="text-xl font-semibold text-gray-700">Notification</h3>
+                <span class="close-button" onclick="closeModal('messageModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p id="messageModalText" class="text-gray-600"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="bg-teal-500 text-white px-4 py-2 rounded-lg hover:bg-teal-600" onclick="closeModal('messageModal')">Okay</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Firebase SDKs
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { 
+            getAuth, 
+            createUserWithEmailAndPassword, 
+            signInWithEmailAndPassword, 
+            signOut, 
+            onAuthStateChanged,
+            // signInAnonymously, // Anonymous sign-in removed
+            signInWithCustomToken,
+            updateProfile
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { 
+            getFirestore, 
+            collection, 
+            addDoc, 
+            serverTimestamp,
+            setLogLevel
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        // --- Firebase Configuration ---
+        const firebaseConfigFromEnv = typeof __firebase_config !== 'undefined' ? __firebase_config : null;
+        const appIdFromEnv = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        
+        let firebaseConfigToUse; 
+        let effectiveProjectId = "NOT_CONFIGURED"; 
+
+        // --- OPTIONAL: Force a specific Firebase config for testing ---
+        const forceConfig = { 
+            apiKey: "AIzaSyBJU6lJxGYwZ0Mbb2dyffB18MN7t90Bv08", 
+            authDomain: "medicare-1a7f9.firebaseapp.com",
+            projectId: "medicare-1a7f9",
+            storageBucket: "medicare-1a7f9.appspot.com", 
+            messagingSenderId: "213089274061", 
+            appId: "1:213089274061:web:f33aabf2d9f79ff8c8c184", 
+        };
+        // To disable forcing, set the above to: const forceConfig = null; 
+        // --- End of Force Config section ---
+
+        if (forceConfig && typeof forceConfig === 'object' && forceConfig.projectId) { 
+            console.warn("!!! USING FORCED FIREBASE CONFIG TO:", forceConfig.projectId, "!!!");
+            firebaseConfigToUse = forceConfig;
+            effectiveProjectId = firebaseConfigToUse.projectId;
+        } else if (firebaseConfigFromEnv) {
+            try {
+                firebaseConfigToUse = JSON.parse(firebaseConfigFromEnv);
+                effectiveProjectId = firebaseConfigToUse.projectId || "UNKNOWN_IN_CONFIG";
+                console.log("Using __firebase_config. Project ID:", effectiveProjectId);
+            } catch (e) {
+                console.error("Error parsing Firebase config from environment:", e);
+                console.warn("Using DUMMY Firebase config due to parsing error.");
+                firebaseConfigToUse = { apiKey: "DUMMY_API_KEY", authDomain: "DUMMY_AUTH_DOMAIN", projectId: "DUMMY_PROJECT_ID_PARSE_ERROR" };
+                effectiveProjectId = firebaseConfigToUse.projectId;
+                if (typeof window.showMessageModal === "function") {
+                    window.showMessageModal("Config Error", "Could not load Firebase configuration from environment.");
+                } else {
+                    console.error("Config Error: Could not load Firebase configuration from environment. (showMessageModal not ready)");
+                }
+            }
+        } else {
+            console.warn("Using local fallback config. PLEASE FILL IN YOUR DETAILS HERE if not forcing and no env config.");
+            firebaseConfigToUse = {
+                apiKey: "YOUR_API_KEY_FOR_FALLBACK", 
+                authDomain: "YOUR_FALLBACK_PROJECT.firebaseapp.com",
+                projectId: "YOUR_FALLBACK_PROJECT_ID", 
+                storageBucket: "YOUR_FALLBACK_PROJECT.appspot.com", 
+                messagingSenderId: "YOUR_FALLBACK_SENDER_ID", 
+                appId: "YOUR_FALLBACK_APP_ID" 
+            };
+            effectiveProjectId = firebaseConfigToUse.projectId;
+        }
+        console.log(`Attempting to initialize Firebase with Project ID: ${effectiveProjectId}. App ID for collections: ${appIdFromEnv}`);
+
+        const appId = appIdFromEnv; 
+
+        // --- Initialize Firebase ---
+        let app;
+        let auth;
+        let db;
+        let currentUserId = null; 
+        let initialAuthCheckCompleted = false; 
+
+        window.openModal = function(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) modal.style.display = "block";
+        }
+        window.closeModal = function(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) modal.style.display = "none";
+        }
+        window.showMessageModal = function(title, message) {
+            const msgModalTitle = document.getElementById('messageModalTitle');
+            const msgModalText = document.getElementById('messageModalText');
+            const msgModal = document.getElementById('messageModal');
+            if (msgModalTitle && msgModalText && msgModal) {
+                msgModalTitle.innerText = title;
+                msgModalText.innerText = message;
+                msgModal.style.display = "block";
+            } else {
+                console.warn("Message modal elements not found (showMessageModal). Title:", title, "Message:", message);
+            }
+        }
+         window.closeMobileMenu = function() { 
+            const mobileMenu = document.getElementById('mobile-menu');
+            if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
+                mobileMenu.classList.add('hidden');
+            }
+        }
+
+        try {
+            if (!firebaseConfigToUse || !firebaseConfigToUse.apiKey) {
+                throw new Error("Firebase configuration is missing or invalid.");
+            }
+            app = initializeApp(firebaseConfigToUse);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            setLogLevel('debug'); 
+            console.log("Firebase Initialized successfully. Connected to Project ID:", effectiveProjectId);
+            const dbUserIdEl = document.getElementById('dbUserId');
+            if (dbUserIdEl) {
+                dbUserIdEl.textContent = `App ID: ${appId}`;
+            }
+        } catch (error) {
+            console.error("Firebase initialization error:", error);
+            console.error("Attempted to use Firebase Config:", JSON.stringify(firebaseConfigToUse)); 
+            document.addEventListener('DOMContentLoaded', () => { 
+                 window.showMessageModal("Initialization Error", `Could not connect to backend services. Check console. Error: ${error.message}`);
+            });
+        }
+        
+        function updateAuthUI(user) {
+            const authButtonsDiv = document.getElementById('auth-buttons');
+            const userInfoDiv = document.getElementById('user-info');
+            const userDisplayEl = document.getElementById('userDisplayInfo'); 
+            const mobileAuthButtonsDiv = document.getElementById('mobile-auth-buttons');
+            const mobileUserInfoDiv = document.getElementById('mobile-user-info');
+            const mobileUserDisplayEl = document.getElementById('mobileUserDisplayInfo'); 
+            const dbUserIdEl = document.getElementById('dbUserId');
+
+            console.log("updateAuthUI called. User object received:", user); 
+            if (user) {
+                currentUserId = user.uid;
+                const display = user.displayName || user.email || 'Logged In'; 
+                console.log(`updateAuthUI - User: ${user.uid}, displayName: '${user.displayName}', email: '${user.email}', Calculated display: '${display}'`);
+
+                if (userDisplayEl) userDisplayEl.textContent = display;
+                if (authButtonsDiv) authButtonsDiv.classList.add('hidden');
+                if (userInfoDiv) userInfoDiv.classList.remove('hidden');
+                
+                if (mobileUserDisplayEl) mobileUserDisplayEl.textContent = display;
+                if (mobileAuthButtonsDiv) mobileAuthButtonsDiv.classList.add('hidden');
+                if (mobileUserInfoDiv) mobileUserInfoDiv.classList.remove('hidden');
+                
+                if (dbUserIdEl) dbUserIdEl.textContent = `App ID: ${appId} | User ID: ${currentUserId}`;
+            } else { 
+                currentUserId = null; 
+                console.log("updateAuthUI - No user. Clearing display info.");
+                if (userDisplayEl) userDisplayEl.textContent = '';
+                if (authButtonsDiv) authButtonsDiv.classList.remove('hidden');
+                if (userInfoDiv) userInfoDiv.classList.add('hidden');
+                
+                if (mobileUserDisplayEl) mobileUserDisplayEl.textContent = '';
+                if (mobileAuthButtonsDiv) mobileAuthButtonsDiv.classList.remove('hidden');
+                if (mobileUserInfoDiv) mobileUserInfoDiv.classList.add('hidden');
+                
+                if (dbUserIdEl) dbUserIdEl.textContent = `App ID: ${appId} | Status: Not Authenticated`;
+            }
+        }
+        
+        function showLoading(formId, isLoading) {
+            const form = document.getElementById(formId);
+            const loadingSpinnerId = formId.replace('Form', 'Loading');
+            const loadingSpinner = document.getElementById(loadingSpinnerId); 
+            if (form && loadingSpinner) {
+                const inputs = form.querySelectorAll('input, select, textarea, button');
+                if (isLoading) {
+                    loadingSpinner.classList.remove('hidden');
+                    inputs.forEach(input => input.disabled = true);
+                } else {
+                    loadingSpinner.classList.add('hidden');
+                    inputs.forEach(input => input.disabled = false);
+                }
+            } else {
+                console.warn(`Could not find form ('${formId}') or spinner ('${loadingSpinnerId}') for showLoading.`);
+            }
+        }
+
+        if (auth) {
+            console.log("Attaching onAuthStateChanged listener.");
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    console.log("onAuthStateChanged: User is signed in:", user);
+                    updateAuthUI(user); 
+                    initialAuthCheckCompleted = true;
+                } else {
+                    console.log("onAuthStateChanged: User is null.");
+                    if (!initialAuthCheckCompleted) {
+                        console.log("Initial auth check: No user found.");
+                        initialAuthCheckCompleted = true;
+                        const isForcingConfig = forceConfig && typeof forceConfig === 'object' && forceConfig.projectId;
+
+                        if (isForcingConfig) {
+                            console.log("forceConfig is active. No automatic sign-in will be attempted. User needs to login/signup.");
+                            updateAuthUI(null); 
+                        } else if (initialAuthToken) {
+                            console.log("Attempting signInWithCustomToken with initialAuthToken.");
+                            signInWithCustomToken(auth, initialAuthToken)
+                                .catch((error) => {
+                                    console.warn("Custom token sign-in failed (error code:", error.code, "). No further automatic sign-in.");
+                                    updateAuthUI(null); 
+                                });
+                        } else {
+                            console.log("No forceConfig or initialAuthToken. No automatic sign-in. User needs to login/signup.");
+                            updateAuthUI(null); 
+                        }
+                    } else {
+                        console.log("User manually signed out or session expired after initial check.");
+                        updateAuthUI(null);
+                    }
+                }
+            });
+        } else {
+            console.error("Firebase Auth object not initialized. Auth-dependent features will not work.");
+            document.addEventListener('DOMContentLoaded', () => { 
+                 window.showMessageModal("Critical Error", "Authentication service failed to load. Please refresh or try again later.");
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("DOMContentLoaded event fired. Setting up event listeners.");
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu'); 
+            const currentYearElement = document.getElementById('currentYear');
+            const openAppointmentModalBtn = document.getElementById('openAppointmentModalBtn');
+            const logoutButton = document.getElementById('logoutButton');
+            const mobileLogoutButton = document.getElementById('mobileLogoutButton');
+            
+            const loginFormEl = document.getElementById('loginForm');
+            const signupFormEl = document.getElementById('signupForm');
+            const appointmentFormEl = document.getElementById('appointmentForm');
+            const contactFormEl = document.getElementById('contactForm');
+
+            if (mobileMenuButton && mobileMenu) {
+                mobileMenuButton.addEventListener('click', () => {
+                    mobileMenu.classList.toggle('hidden');
+                });
+            }
+
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href');
+                    // Only attempt to scroll if targetId is more than just "#"
+                    if (targetId && targetId.length > 1) { 
+                        const targetElement = document.querySelector(targetId);
+                        if (targetElement) {
+                            targetElement.scrollIntoView({ behavior: 'smooth' });
+                        } else {
+                            console.warn("Smooth scroll target not found for:", targetId);
+                        }
+                    }
+                    window.closeMobileMenu(); 
+                });
+            });
+
+            if (currentYearElement) currentYearElement.textContent = new Date().getFullYear();
+            
+            window.onclick = function(event) { 
+                document.querySelectorAll('.modal').forEach(modal => {
+                    if (event.target == modal) window.closeModal(modal.id); 
+                });
+            }
+            
+            if(openAppointmentModalBtn) { 
+                openAppointmentModalBtn.addEventListener('click', () => {
+                    if (auth && auth.currentUser) { 
+                        const currentUser = auth.currentUser;
+                        const pName = document.getElementById('patientName');
+                        const pEmail = document.getElementById('patientEmail');
+                        if (pName && currentUser.displayName) pName.value = currentUser.displayName;
+                        if (pEmail && currentUser.email) pEmail.value = currentUser.email;
+                    }
+                    window.openModal('appointmentModal'); 
+                });
+            }
+
+            function handleLogout() {
+                if (auth) { 
+                    signOut(auth).then(() => {
+                        window.showMessageModal('Logged Out', 'You have been successfully logged out.');
+                    }).catch(e => {
+                        window.showMessageModal('Logout Failed', e.message);
+                        console.error("Logout error:", e);
+                    });
+                } else {
+                    console.error("Logout attempt failed: Auth service not available.");
+                    window.showMessageModal('Error', 'Logout service not available.');
+                }
+            }
+            if (logoutButton) logoutButton.addEventListener('click', handleLogout);
+            if (mobileLogoutButton) mobileLogoutButton.addEventListener('click', () => { handleLogout(); window.closeMobileMenu(); });
+
+            if (loginFormEl) { 
+                console.log("Login form found. Attaching listener.");
+                loginFormEl.addEventListener('submit', async (event) => {
+                    event.preventDefault();
+                    if (!auth) { 
+                        console.error("Login attempt failed: Auth service not available.");
+                        window.showMessageModal('Error', 'Login service not available.');
+                        return;
+                    }
+                    showLoading('loginForm', true);
+                    try {
+                        const cred = await signInWithEmailAndPassword(auth, loginFormEl.loginEmail.value, loginFormEl.loginPassword.value);
+                        window.closeModal('loginModal');
+                        // updateAuthUI will be called by onAuthStateChanged
+                        loginFormEl.reset();
+                    } catch (error) { 
+                        window.showMessageModal('Login Failed', error.message); 
+                        console.error("Login error:", error);
+                    } 
+                    finally { showLoading('loginForm', false); }
+                });
+            } else { console.warn("Login form element not found."); }
+
+            if (signupFormEl) { 
+                console.log("Signup form found. Attaching listener.");
+                signupFormEl.addEventListener('submit', async (event) => {
+                    event.preventDefault();
+                     if (!auth) { 
+                        console.error("Sign up attempt failed: Auth service not available.");
+                        window.showMessageModal('Error', 'Sign up service not available.');
+                        return;
+                    }
+                    const name = signupFormEl.signupName.value.trim(); 
+                    const email = signupFormEl.signupEmail.value;
+                    const pass = signupFormEl.signupPassword.value;
+                    const confirm = signupFormEl.signupConfirmPassword.value;
+
+                    if (!name) { 
+                        window.showMessageModal('Sign Up Error', 'Please enter your full name.');
+                        return;
+                    }
+                    if (pass !== confirm) { 
+                        window.showMessageModal('Sign Up Error', 'Passwords do not match.'); 
+                        return; 
+                    }
+                    
+                    showLoading('signupForm', true);
+                    try {
+                        const cred = await createUserWithEmailAndPassword(auth, email, pass);
+                        console.log("User created. Attempting to update profile with displayName:", name);
+                        await updateProfile(cred.user, { displayName: name });
+                        
+                        if (auth.currentUser) {
+                           console.log("Profile update successful. Forcing UI update with current user:", auth.currentUser);
+                           updateAuthUI(auth.currentUser); 
+                        } else {
+                           console.warn("auth.currentUser is null after profile update. UI might not reflect displayName immediately.");
+                        }
+                        
+                        window.closeModal('signupModal');
+                        window.showMessageModal('Sign Up Successful', `Welcome, ${name}! Your account created.`);
+                        signupFormEl.reset();
+                    } catch (error) { 
+                        let userMessage = error.message;
+                        if (error.code === 'auth/email-already-in-use') {
+                            userMessage = 'This email address is already registered. Please try logging in or use a different email.';
+                        } else if (error.code === 'auth/operation-not-allowed') {
+                            userMessage = `Sign up is currently not allowed. (Ensure Email/Password sign-in is enabled for project: ${effectiveProjectId})`;
+                        }
+                        window.showMessageModal('Sign Up Failed', userMessage);
+                        console.error("Sign up error:", error);
+                    } 
+                    finally { showLoading('signupForm', false); }
+                });
+            } else { console.warn("Signup form element not found."); }
+
+
+            if (appointmentFormEl && db) { 
+                console.log("Appointment form found. Attaching listener.");
+                appointmentFormEl.addEventListener('submit', async (event) => {
+                    event.preventDefault();
+                    if (!auth || !auth.currentUser) { 
+                         console.error("Appointment submission failed: User not authenticated.");
+                         window.showMessageModal('Authentication Required', 'Please log in or sign up to book an appointment.');
+                         return;
+                    }
+                    showLoading('appointmentForm', true);
+                    const data = {
+                        patientName: appointmentFormEl.patientName.value,
+                        patientEmail: appointmentFormEl.patientEmail.value,
+                        appointmentDate: appointmentFormEl.appointmentDate.value,
+                        doctor: appointmentFormEl.doctor.value,
+                        notes: appointmentFormEl.appointmentNotes.value,
+                        status: "Pending", 
+                        requestedAt: serverTimestamp(),
+                        userId: auth.currentUser.uid, 
+                        appInstanceId: appId 
+                    };
+                    try {
+                        await addDoc(collection(db, `/artifacts/${appId}/public/data/appointments`), data);
+                        window.closeModal('appointmentModal');
+                        window.showMessageModal('Appointment Request Submitted', `Thank you, ${data.patientName}! We will contact you.`);
+                        appointmentFormEl.reset();
+                    } catch (error) { 
+                        window.showMessageModal('Submission Failed', error.message); 
+                        console.error("Firestore error submitting appointment:", error); 
+                    } 
+                    finally { showLoading('appointmentForm', false); }
+                });
+            } else { console.warn("Appointment form element or DB not found."); }
+
+            if (contactFormEl && db) { 
+                 console.log("Contact form found. Attaching listener.");
+                contactFormEl.addEventListener('submit', async (event) => {
+                    event.preventDefault();
+                    const userIdForContact = auth && auth.currentUser ? auth.currentUser.uid : 'anonymous_contact';
+
+                    const data = {
+                        name: contactFormEl.contactName.value,
+                        email: contactFormEl.contactEmail.value,
+                        message: contactFormEl.contactMessage.value,
+                        submittedAt: serverTimestamp(),
+                        userId: userIdForContact,
+                        appInstanceId: appId
+                    };
+                    try {
+                        await addDoc(collection(db, `/artifacts/${appId}/public/data/contactMessages`), data);
+                        window.showMessageModal('Message Sent', `Thank you, ${data.name}! We received your message.`);
+                        contactFormEl.reset();
+                    } catch (error) { 
+                        window.showMessageModal('Send Failed', error.message); 
+                        console.error("Firestore error submitting contact message:", error);
+                    }
+                });
+            } else { console.warn("Contact form element or DB not found."); }
+        }); 
+
+    </script>
+</body>
+</html>
